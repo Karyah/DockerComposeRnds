@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:3
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3,sqs
+      - DEBUG=1
+    volumes:
+      - ./infra:/infra   
+      - .:/workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    expose:
+      - "29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CREATE_TOPICS: "fhir-success-topic:1:1,fhir-error-topic:1:1"
+    depends_on:
+      - zookeeper
+
+  init-aws:
+    image: amazon/aws-cli
+    container_name: init-aws
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_REGION=us-east-1
+    volumes:
+      - ./init-aws.sh:/init.sh
+      - ./bucket-notification.json:/workspace/bucket-notification.json
+    entrypoint: ["/bin/bash", "/init.sh"]
+
+  postgres_archiveuploader:
+    container_name: postgres_archiveuploader
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: archiveuploader
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+  
+  archiveuploader:
+    container_name: archiveuploader
+    image: aisakatfpn/archiveuploader:1.2
+    restart: always
+    depends_on:
+      - init-aws
+      - postgres_archiveuploader
+      - localstack
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_archiveuploader:5432/archiveuploader
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: password  
+      URI_S3: http://localstack:4566
+
+  
