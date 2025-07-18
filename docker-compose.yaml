@@ -112,28 +112,36 @@ services:
       FILE_PROCESSOR_PORT: 8082
 
   mysql:
+    container_name: mysql
     image: mysql:8.1
     environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=ms_error_tracker
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ms_error_tracker
     ports:
       - "3306:3306"
 
-  # error-tracker:
-  #   container_name: error-tracker
-  #   image: luskafer/ms-error-tracker:v1.0.0
-  #   depends_on:
-  #     - mysql
-  #     - kafka
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_error_tracker
-  #     SPRING_DATASOURCE_USERNAME: root
-  #     SPRING_DATASOURCE_PASSWORD: password
-  #     FILE_PROCESSOR_PORT: 8084
-  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-  #     KAFKA_ERROR_TOPIC: fhir-error-topic
-  #   ports:
-  #     - "8084:8084"
+  error-tracker:
+    container_name: error-tracker
+    restart: always
+    image: luskafer/ms-error-tracker:v1.0.0
+    depends_on:
+      - mysql
+      - kafka
+    environment:
+      ERROR_TRACKER_PORT: 8084
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: ms-error-tracker-group
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ms_error_tracker
+      DB_USER: user
+      DB_PASSWORD: password
+      KAFKA_SUCCESS_TOPIC: fhir-success-topic
+      KAFKA_ERROR_TOPIC: fhir-error-topic
+    ports:
+      - "8084:8084"
  
   mongodb:
     image: mongo:7

@@ -1,0 +1,9 @@
+db.ria.find()
+use hackaton
+use ria
+show collections
+use hackaton
+show databases
+show tables
+show table
+show collections
