@@ -125,7 +125,7 @@ services:
   error-tracker:
     container_name: error-tracker
     restart: always
-    image: luskafer/ms-error-tracker:v1.0.0
+    image: luskafer/ms-error-tracker:v1.0.1
     depends_on:
       - mysql
       - kafka
