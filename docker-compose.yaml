@@ -38,7 +38,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CREATE_TOPICS: "fhir-success-topic:1:1,fhir-error-topic:1:1"
     depends_on:
@@ -73,7 +73,7 @@ services:
   
   archiveuploader:
     container_name: archiveuploader
-    image: aisakatfpn/archiveuploader:1.2
+    image: aisakatfpn/archiveuploader:2.0
     restart: always
     depends_on:
       - init-aws
@@ -87,4 +87,73 @@ services:
       SPRING_DATASOURCE_PASSWORD: password  
       URI_S3: http://localstack:4566
 
-  
+  file-processor:
+    container_name: file-processor
+    image: anacsilva/hackaton-file-processor:1.0
+    restart: always
+    depends_on:
+      - init-aws
+      - localstack
+      - kafka
+    ports: 
+      - "8082:8082"
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+      AWS_SQS_ENDPOINT: http://localstack:4566
+      FILE_EVENTS_QUEUE: file-events
+      LOCALSTACK_URL: http://localstack:4566
+      LOCALSTACK_ACCESS_KEY_ID: test
+      LOCALSTACK_SECRET_ACCESS: test
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SUCCESS_TOPIC: fhir-success-topic
+      KAFKA_ERROR_TOPIC: fhir-error-topic
+      FILE_PROCESSOR_PORT: 8082
+
+  mysql:
+    image: mysql:8.1
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=ms_error_tracker
+    ports:
+      - "3306:3306"
+
+  # error-tracker:
+  #   container_name: error-tracker
+  #   image: luskafer/ms-error-tracker:v1.0.0
+  #   depends_on:
+  #     - mysql
+  #     - kafka
+  #   environment:
+  #     SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ms_error_tracker
+  #     SPRING_DATASOURCE_USERNAME: root
+  #     SPRING_DATASOURCE_PASSWORD: password
+  #     FILE_PROCESSOR_PORT: 8084
+  #     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #     KAFKA_ERROR_TOPIC: fhir-error-topic
+  #   ports:
+  #     - "8084:8084"
+ 
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: hackaton
+
+
+  rnds-sender:
+    container_name: rnds-sender
+    image: anacsilva/hackaton-rnds-sender:1.0
+    ports:
+      - "8083:8083"
+    environment:
+      RNDS_SENDER_MONGO_URI: mongodb://mongodb:27017/hackaton
+      KAFKA_SUCCESS_TOPIC: fhir-success-topic
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      RNDS_SENDER_PORT: 8083
+      SUS_MOCK_URL: http://rnds-sender:8083/mock-sus/ria-r
