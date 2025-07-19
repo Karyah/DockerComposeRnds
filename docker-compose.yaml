@@ -73,7 +73,7 @@ services:
   
   archiveuploader:
     container_name: archiveuploader
-    image: aisakatfpn/archiveuploader:2.1
+    image: aisakatfpn/archiveuploader:2.3
     restart: always
     depends_on:
       - init-aws
