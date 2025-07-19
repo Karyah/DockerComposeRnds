@@ -1,0 +1,80 @@
+{
+	"info": {
+		"_postman_id": "8f615596-e2ca-4cf4-8bec-6b20daa18c7a",
+		"name": "Endpoints RNDS+",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "23797639"
+	},
+	"item": [
+		{
+			"name": "Get Layout",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8081/layout/RIA-R"
+			},
+			"response": []
+		},
+		{
+			"name": "Put Layout",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": 1,\r\n    \"idRegistro\": \"Id\",\r\n    \"estabelecimentoSaude\": \"Estabelecimento de Saúde\",\r\n    \"identificadorProfissional\": \"CPF Profissional\",\r\n    \"identificadorIndividuo\": \"CNS/CPF do Indivíduo\",\r\n    \"estrategia\": \"Estratégia\",\r\n    \"pesquisaClinica\": \"Pesquisa Clinica\",\r\n    \"anvisaProtocoloEstudo\": \"Protocolo de Estudo Anvisa\",\r\n    \"anvisaProtocoloVersao\": \"Versão do Protocolo Anvisa\",\r\n    \"anvisaNumRegistro\": \"Número do Registro Anvisa\",\r\n    \"dataImunizacao\": \"Data de Imunização\",\r\n    \"imunobiologico\": \"Vacina\",\r\n    \"fabricante\": \"Fabricante\",\r\n    \"lote\": \"Lote\",\r\n    \"dose\": \"Dose\",\r\n    \"viaAdministracao\": \"Via Administração\",\r\n    \"localAplicacao\": \"Local da Aplicação\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8081/layout/RIA-R"
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Arquivo",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "tipoArquivo",
+							"value": "CSV",
+							"type": "text"
+						},
+						{
+							"key": "tipoEnvio",
+							"value": "I",
+							"type": "text"
+						},
+						{
+							"key": "tipoDocumento",
+							"value": "RIAR",
+							"type": "text"
+						},
+						{
+							"key": "arquivo",
+							"type": "file",
+							"src": "/D:/temp/ExemploCSV_Sucesso.csv"
+						}
+					]
+				},
+				"url": "http://localhost:8081/upload-arquivo"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Errors",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8084/errors"
+			},
+			"response": []
+		}
+	]
+}
