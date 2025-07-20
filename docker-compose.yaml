@@ -56,7 +56,7 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_REGION=us-east-1
     volumes:
-      - ./init-aws.sh:/init.sh
+      - ./init-aws.sh:/init.shv
       - ./bucket-notification.json:/workspace/bucket-notification.json
     entrypoint: ["/bin/bash", "/init.sh"]
 
@@ -73,7 +73,7 @@ services:
   
   archiveuploader:
     container_name: archiveuploader
-    image: aisakatfpn/archiveuploader:2.3
+    image: aisakatfpn/archiveuploader:2.7
     restart: always
     depends_on:
       - init-aws
